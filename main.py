@@ -1,5 +1,6 @@
 import base64
 from io import BytesIO
+import pathlib
 
 from flask import Flask
 from matplotlib.figure import Figure
@@ -12,9 +13,17 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 
 app = Flask(__name__)
 
-
 @app.route("/")
 def hello():
+    root_path = pathlib.Path('data/skiing')
+    competitions = set()
+    for child in root_path.rglob('*.csv'):
+        competitions.add(str(child.parent))
+    competitions = sorted(competitions)
+    return '<br>'.join(competitions)
+
+@app.route("/sample")
+def hello1():
     # Generate the figure **without using pyplot**.
     fig = Figure()
     ax = fig.subplots()
