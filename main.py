@@ -37,11 +37,23 @@ def generate_competition_preview(path):
     return f"<img src='data:image/png;base64,{data}'/>"
 
 
+SPORT_TO_DATA = {
+    'ski': 'data/skiing'
+}
+
+
 @app.route("/")
-def hello():
-    root_path = pathlib.Path('data/skiing')
+def list_sports():
+    return '<br/>'.join(f'<a href="{sport}">{sport}</a>' for sport in SPORT_TO_DATA)
+
+
+@app.route("/<sport>")
+def landing_page(sport):
+    sport_data = SPORT_TO_DATA.get(sport)
+    if not sport_data:
+        return 'Unsupported sport type: ' + repr(sport)
     competitions = set()
-    for child in root_path.rglob('*.csv'):
+    for child in pathlib.Path(sport_data).rglob('*.csv'):
         competitions.add(child.parent)
         # break
     competitions = sorted(competitions)
