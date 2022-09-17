@@ -1,6 +1,7 @@
 import base64
 from io import BytesIO
 import pathlib
+import pandas as pd
 
 from flask import Flask
 from matplotlib.figure import Figure
@@ -13,14 +14,38 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 
 app = Flask(__name__)
 
+def generate_competition_preview(path):
+    fig = Figure(figsize=(2,2))
+    ax = fig.subplots()
+    ax.axis('off')
+    for run in path.glob('*.csv'):
+        data = pd.read_csv(run)
+        if 'xPos[m]' in data:
+            ax.plot(data['xPos[m]'], data['yPos[m]'])
+        elif 'Latitude[deg]' in data:
+            ax.plot(data['Latitude[deg]'], data['Longitude[deg]'])
+        else:
+            print('no columns xpos/ypos', run)
+
+    ax.relim()
+    ax.autoscale_view()
+    buf = BytesIO()
+    fig.savefig(buf, format="png", bbox_inches='tight')
+    # Embed the result in the html output.
+    data = base64.b64encode(buf.getbuffer()).decode("ascii")
+    return f"<img src='data:image/png;base64,{data}'/>"
+
 @app.route("/")
 def hello():
     root_path = pathlib.Path('data/skiing')
     competitions = set()
     for child in root_path.rglob('*.csv'):
-        competitions.add(str(child.parent))
+        competitions.add(child.parent)
+        # break
     competitions = sorted(competitions)
-    return '<br>'.join(competitions)
+    return ''.join([
+        '<div>' + generate_competition_preview(c) + '<br>' + str(c) + '<div>'
+        for c in competitions])
 
 @app.route("/sample")
 def hello1():
