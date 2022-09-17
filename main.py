@@ -14,8 +14,9 @@ from matplotlib.colors import ListedColormap, BoundaryNorm
 
 app = Flask(__name__)
 
+
 def generate_competition_preview(path):
-    fig = Figure(figsize=(2,2))
+    fig = Figure(figsize=(2, 2))
     ax = fig.subplots()
     ax.axis('off')
     for run in path.glob('*.csv'):
@@ -35,6 +36,7 @@ def generate_competition_preview(path):
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return f"<img src='data:image/png;base64,{data}'/>"
 
+
 @app.route("/")
 def hello():
     root_path = pathlib.Path('data/skiing')
@@ -46,6 +48,7 @@ def hello():
     return ''.join([
         '<div>' + generate_competition_preview(c) + '<br>' + str(c) + '<div>'
         for c in competitions])
+
 
 @app.route("/sample")
 def hello1():
@@ -59,6 +62,7 @@ def hello1():
     # Embed the result in the html output.
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return f"<img src='data:image/png;base64,{data}'/>"
+
 
 @app.route("/var-width-line")
 def hello2():
@@ -126,6 +130,7 @@ def hello3():
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return f"<img src='data:image/png;base64,{data}'/>"
 
+
 @app.route("/both")
 def hello4():
     x = np.linspace(0, 3 * np.pi, 500)
@@ -148,7 +153,7 @@ def hello4():
     lc = LineCollection(segments, cmap='viridis', norm=norm, linewidths=lwidths)
     # Set the values used for colormapping
     lc.set_array(dydx)
-    #lc.set_linewidth(2)
+    # lc.set_linewidth(2)
     line = axs[0].add_collection(lc)
     fig.colorbar(line, ax=axs[0])
 
@@ -157,7 +162,7 @@ def hello4():
     norm = BoundaryNorm([-1, -0.5, 0.5, 1], cmap.N)
     lc = LineCollection(segments, cmap=cmap, norm=norm, linewidths=lwidths)
     lc.set_array(dydx)
-    #lc.set_linewidth(2)
+    # lc.set_linewidth(2)
     line = axs[1].add_collection(lc)
     fig.colorbar(line, ax=axs[1])
 
@@ -170,4 +175,3 @@ def hello4():
     # Embed the result in the html output.
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return f"<img src='data:image/png;base64,{data}'/>"
-
