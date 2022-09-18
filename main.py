@@ -187,3 +187,92 @@ def hello4():
     # Embed the result in the html output.
     data = base64.b64encode(buf.getbuffer()).decode("ascii")
     return f"<img src='data:image/png;base64,{data}'/>"
+
+
+@app.route("/show_relative")
+def hello5():
+    red_color_list = ['#11FF00', '#11FF00', '#22FF00', '#33FF00', '#44FF00', '#55FF00', '#66FF00', '#77FF00',
+                      '#88FF00', '#99FF00', '#AAFF00', '#BBFF00', '#CCFF00', '#DDFF00', '#EEFF00', '#FFFF00',
+                      '#FFEE00', '#FFDD00', '#FFCC00', '#FFBB00', '#FFAA00', '#FF9900', '#FF8800', '#FF7700',
+                      '#FF6600', '#FF5500', '#FF4400', '#FF3300', '#FF2200', '#FF1100', '#FF0000']
+    data1 = pd.read_csv('.\\HackZurich\\Athlete\\Skiing\\Zermatt Skiing\\N1.csv')
+    data2 = pd.read_csv('.\\HackZurich\\Athlete\\Skiing\\Zermatt Skiing\\Z3.csv')
+
+    diff = data1.shape[0] - data2.shape[0]
+    if diff:
+        if diff > 0:
+            data1 = data1[:-diff]
+        else:
+            data2 = data2[:diff]
+
+    data1['place'] = np.where(data1['distance[m]'] >= data2['distance[m]'], 'green', 'red')
+    data1['dist1-2'] = data1['distance[m]'] - data2['distance[m]']
+    data1_color = []
+
+    i = 0
+    index = 0
+    old_diff = data1['dist1-2'].iloc[0]
+    for el in data1['place']:
+        color = 'red'
+        if el == 'red':
+            new_diff = data1['dist1-2'].iloc[index]
+            if new_diff < old_diff:
+                if i < (len(red_color_list) - 1):
+                    print(color)
+                    color = red_color_list[i]
+                    i += 1
+            else:
+                if i > 0:
+                    color = red_color_list[i]
+                    i -= 1
+                else:
+                    color = red_color_list[0]
+        else:
+            color = 'green'
+
+        old_diff = data1['dist1-2'].iloc[index]
+        data1_color.append(color)
+        index += 1
+    fig, ax = plt.subplots()
+
+    ax.scatter(data1['Latitude[deg]'], data1['Longitude[deg]'], c=data1_color)
+    plt.xlabel("Latitude[deg]")
+    plt.ylabel("Longitude[deg]")
+
+    # Save it to a temporary buffer.
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    # Embed the result in the html output.
+    data = base64.b64encode(buf.getbuffer()).decode("ascii")
+    return f"<img src='data:image/png;base64,{data}'/>"
+
+
+@app.route("/show_relative_dist")
+def hello6():
+    data1 = pd.read_csv('.\\HackZurich\\Athlete\\Skiing\\Zermatt Skiing\\N1.csv')
+    data2 = pd.read_csv('.\\HackZurich\\Athlete\\Skiing\\Zermatt Skiing\\Z3.csv')
+
+    diff = data1.shape[0] - data2.shape[0]
+    if diff:
+        if diff > 0:
+            data1 = data1[:-diff]
+        else:
+            data2 = data2[:diff]
+
+    data1['dist1-2'] = data1['distance[m]'] - data2['distance[m]']
+    data1['dist1-2-color'] = np.where(data1['dist1-2'] >= 0, 'green', 'red')
+
+    fig, ax = plt.subplots()
+
+    ax.scatter(data1['Latitude[deg]'], data1['dist1-2'], c=data1['dist1-2-color'])
+
+    plt.axhline(0, color='grey', linestyle='--')
+    plt.xlabel("Latitude[deg]")
+    plt.ylabel("distance[m]")
+
+    # Save it to a temporary buffer.
+    buf = BytesIO()
+    fig.savefig(buf, format="png")
+    # Embed the result in the html output.
+    data = base64.b64encode(buf.getbuffer()).decode("ascii")
+    return f"<img src='data:image/png;base64,{data}'/>"
